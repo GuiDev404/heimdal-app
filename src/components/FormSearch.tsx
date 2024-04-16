@@ -17,7 +17,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ getWeatherOfLocation }) => {
   const debouceValue = useDebouce({ value: query, time: 1000 })
 
   const isEnabledFetchOrNot = debouceValue.trim() ? `q=${debouceValue}&limit=10` : null
-  const { data, error, isLoading } = useSWR<SearchLocation[]>(isEnabledFetchOrNot, getSearchResults, {
+  const { data, error, isLoading, mutate } = useSWR<SearchLocation[]>(isEnabledFetchOrNot, getSearchResults, {
     revalidateOnFocus: false,
     keepPreviousData: true
   })
@@ -52,6 +52,15 @@ const FormSearch: React.FC<FormSearchProps> = ({ getWeatherOfLocation }) => {
     event.preventDefault()
   }
 
+  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value
+    setQuery(value)
+
+    if (!value) {
+      await mutate([], false)
+    }
+  }
+
   const classToggleable = showResult ? 'opacity-100 visible' : 'opacity-0 invisible'
   const resultsMesage = data?.length
     ? `${data?.length} resultados para ${debouceValue}`
@@ -73,7 +82,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ getWeatherOfLocation }) => {
           name='search_location'
           value={query}
           onFocus={handleFocus}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChange}
         />
       </form>
 
